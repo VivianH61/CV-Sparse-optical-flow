@@ -1,7 +1,8 @@
 import cv2 as cv
 import numpy as np
+import sift
 
-input_video = "input.mp4"
+input_video = "car.mp4"
 # Parameters for Shi-Tomasi corner detection
 feature_params = dict(maxCorners = 300, qualityLevel = 0.2, minDistance = 2, blockSize = 7)
 # Parameters for Lucas-Kanade optical flow
@@ -16,8 +17,12 @@ ret, first_frame = video_cap.read()
 prev_gray = cv.cvtColor(first_frame, cv.COLOR_BGR2GRAY)
 
 # Finds the strongest corners in the first frame by Shi-Tomasi method - we will track the optical flow for these corners
-# https://docs.opencv.org/3.0-beta/modules/imgproc/doc/feature_detection.html#goodfeaturestotrack
-prev = cv.goodFeaturesToTrack(prev_gray, mask = None, **feature_params)
+#prev = cv.goodFeaturesToTrack(prev_gray, mask = None, **feature_params)
+prev = sift.computeKeypoints(prev_gray)
+print(prev.shape) #(n, 1, 2) 
+
+
+
 
 # Creates an image filled with zero intensities with the same dimensions as the frame - for later drawing purposes
 mask = np.zeros_like(first_frame)
@@ -34,7 +39,7 @@ while(video_cap.isOpened()):
     next, status, error = cv.calcOpticalFlowPyrLK(prev_gray, gray, prev, None, **lk_params)
     # Selects good feature points for previous position
     good_old = prev[status == 1]
-    print(good_old.shape)
+    #print(good_old.shape) # (n, 2)
     # Selects good feature points for next position
     good_new = next[status == 1]
     # Draws the optical flow tracks
