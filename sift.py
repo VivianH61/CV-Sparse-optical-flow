@@ -11,9 +11,7 @@ import math
 logger = logging.getLogger(__name__)
 float_tolerance = 1e-7
 
-#################
-# Main function #
-#################
+# Return coordinates of feature points
 def computeKeypoints(image, sigma=1.6, num_intervals=3, assumed_blur=0.5, image_border_width=5):
     """Compute SIFT keypoints and descriptors for an input image
     """
@@ -36,7 +34,6 @@ def computeKeypoints(image, sigma=1.6, num_intervals=3, assumed_blur=0.5, image_
 #########################
 # Image pyramid related #
 #########################
-
 def generateBaseImage(image, sigma, assumed_blur):
     """Generate base image from input image by upsampling by 2 in both directions and blurring
     """
@@ -99,7 +96,7 @@ def generateDoGImages(gaussian_images):
 # Scale-space extrema related #
 ###############################
 
-# return 2d array of keypoints coordinates
+
 def findScaleSpaceExtrema(gaussian_images, dog_images, num_intervals, sigma, image_border_width, contrast_threshold=0.1):
     """Find pixel positions of all scale-space extrema in the image pyramid
     """
@@ -221,10 +218,7 @@ def computeHessianAtCenterPixel(pixel_array):
                   [dxy, dyy, dys],
                   [dxs, dys, dss]])
 
-#########################
 # Keypoint orientations #
-#########################
-
 def computeKeypointsWithOrientations(keypoint, octave_index, gaussian_image, radius_factor=3, num_bins=36, peak_ratio=0.8, scale_factor=1.5):
     """Compute orientations for each keypoint
     """
@@ -271,10 +265,8 @@ def computeKeypointsWithOrientations(keypoint, octave_index, gaussian_image, rad
             keypoints_with_orientations.append(new_keypoint)
     return keypoints_with_orientations
 
-##############################
-# Duplicate keypoint removal #
-##############################
 
+# Duplicate keypoint removal 
 def compareKeypoints(keypoint1, keypoint2):
     """Return True if keypoint1 is less than keypoint2
     """
@@ -310,10 +302,7 @@ def removeDuplicateKeypoints(keypoints):
             unique_keypoints.append(next_keypoint)
     return unique_keypoints
 
-#############################
-# Keypoint scale conversion #
-#############################
-
+# Keypoint scale conversion
 def convertKeypointsToInputImageSize(keypoints):
     """Convert keypoint point, size, and octave to input image size
     """

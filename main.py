@@ -3,10 +3,6 @@ import numpy as np
 import sift
 
 input_video = "car.mp4"
-# Parameters for Shi-Tomasi corner detection
-feature_params = dict(maxCorners = 300, qualityLevel = 0.2, minDistance = 2, blockSize = 7)
-# Parameters for Lucas-Kanade optical flow
-lk_params = dict(winSize = (15,15), maxLevel = 2, criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
 # The video feed is read in as a VideoCapture object
 video_cap = cv.VideoCapture(input_video)
 # Variable for color to draw optical flow track
@@ -17,16 +13,16 @@ ret, first_frame = video_cap.read()
 prev_gray = cv.cvtColor(first_frame, cv.COLOR_BGR2GRAY)
 
 # Finds the strongest corners in the first frame by Shi-Tomasi method - we will track the optical flow for these corners
-#prev = cv.goodFeaturesToTrack(prev_gray, mask = None, **feature_params)
+#prev = cv.goodFeaturesToTrack(prev_gray, mask = None, maxCorners = 300, qualityLevel = 0.2, minDistance = 2, blockSize = 7)
+# find feature points by SIFT
 prev = sift.computeKeypoints(prev_gray)
 print(prev.shape) #(n, 1, 2) 
 
 
 
-
 # Creates an image filled with zero intensities with the same dimensions as the frame - for later drawing purposes
 mask = np.zeros_like(first_frame)
-
+first_frame_saved = False
 while(video_cap.isOpened()):
     # ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
     ret, frame = video_cap.read()
@@ -35,11 +31,9 @@ while(video_cap.isOpened()):
         break
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # Calculates sparse optical flow by Lucas-Kanade method
-    # https://docs.opencv.org/3.0-beta/modules/video/doc/motion_analysis_and_object_tracking.html#calcopticalflowpyrlk
-    next, status, error = cv.calcOpticalFlowPyrLK(prev_gray, gray, prev, None, **lk_params)
+    next, status, error = cv.calcOpticalFlowPyrLK(prev_gray, gray, prev, None, winSize = (15,15), maxLevel = 2, criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
     # Selects good feature points for previous position
     good_old = prev[status == 1]
-    #print(good_old.shape) # (n, 2)
     # Selects good feature points for next position
     good_new = next[status == 1]
     # Draws the optical flow tracks
@@ -56,6 +50,10 @@ while(video_cap.isOpened()):
     prev_gray = gray.copy()
     # Updates previous good feature points
     prev = good_new.reshape(-1, 1, 2)
+    # only the first frame need to be saved
+    if not first_frame_saved:
+        cv.imwrite("good_feature_points.png", output)
+        first_frame_saved = True
     # Opens a new window and displays the output frame
     cv.imshow("sparse optical flow", output)
     # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
